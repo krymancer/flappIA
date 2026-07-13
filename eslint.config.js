@@ -21,6 +21,8 @@ export default [
   },
   {
     files: ['**/*.test.js'],
-    languageOptions: { globals: { global: 'readonly' } },
+    languageOptions: {
+      globals: { global: 'readonly', setTimeout: 'readonly', clearTimeout: 'readonly' },
+    },
   },
 ];
