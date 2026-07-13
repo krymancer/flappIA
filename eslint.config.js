@@ -13,6 +13,7 @@ export default [
         document: 'readonly',
         Image: 'readonly',
         requestAnimationFrame: 'readonly',
+        console: 'readonly',
       },
     },
     rules: {
