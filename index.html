@@ -39,7 +39,8 @@
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
         image-rendering: pixelated;
       }
-      #panels {
+      #panels,
+      #stats-col {
         display: flex;
         flex-direction: column;
         gap: 14px;
@@ -78,6 +79,11 @@
   </head>
   <body>
     <div id="stage">
+      <aside id="stats-col">
+        <div class="card">
+          <canvas id="stats" class="viz" width="300" height="510"></canvas>
+        </div>
+      </aside>
       <canvas id="game" width="576" height="1024"></canvas>
       <aside id="panels">
         <div class="card">

@@ -60,10 +60,10 @@ export class NeuralNetwork {
     return clone;
   }
 
-  mutate(rate) {
+  mutate(rate, strength = 0.5) {
     const mut = (arr) => {
       for (let i = 0; i < arr.length; i++) {
-        if (Math.random() < rate) arr[i] += gaussian() * 0.5;
+        if (Math.random() < rate) arr[i] += gaussian() * strength;
       }
     };
     mut(this.weightsIH);

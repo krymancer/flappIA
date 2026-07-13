@@ -7,10 +7,11 @@ import { drawNetwork } from './viz/nn-view.js';
 import { drawDashboard } from './viz/charts.js';
 
 export class Game {
-  constructor(context, nnCtx, chartCtx) {
+  constructor(context, nnCtx, chartCtx, statsCtx) {
     this.ctx = context;
     this.nnCtx = nnCtx ?? null; // dedicated canvas for the brain diagram
     this.chartCtx = chartCtx ?? null; // dedicated canvas for the fitness charts
+    this.statsCtx = statsCtx ?? null; // dedicated canvas for the left stats column
     this.base = new Base();
     this.generation = 1;
     this.bestScore = 0;
@@ -97,24 +98,75 @@ export class Game {
     this.pipes.forEach((p) => p.draw(ctx));
     this.activeBirds.forEach((b) => b.draw(ctx));
     this.base.draw(ctx);
-    this.drawHud();
+    if (this.statsCtx) this.drawStats();
     if (this.showViz) this.drawViz();
 
     if (this.activeBirds.length === 0) this.evolve();
   }
 
-  drawHud() {
-    const ctx = this.ctx;
+  // Left column: live scores, generation, and run configuration.
+  drawStats() {
+    const ctx = this.statsCtx;
+    clearCanvas(ctx);
+    const W = ctx.canvas.width;
+    const x = 18;
     ctx.textAlign = 'left';
-    // subtle shadow panel behind the text for legibility over the sky
-    ctx.fillStyle = 'rgba(0,0,0,0.28)';
-    ctx.fillRect(16, 18, 300, 118);
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 30px system-ui, sans-serif';
-    ctx.fillText(`Generation ${this.generation}`, 30, 56);
-    ctx.font = '24px system-ui, sans-serif';
-    ctx.fillText(`Alive: ${this.activeBirds.length} / ${this.allBirds.length}`, 30, 92);
-    ctx.fillText(`Best: ${this.bestScore}`, 30, 124);
+    ctx.textBaseline = 'alphabetic';
+
+    ctx.fillStyle = '#eef2f8';
+    ctx.font = 'bold 22px system-ui, sans-serif';
+    ctx.fillText('flappIA', x, 34);
+    ctx.fillStyle = 'rgba(180,200,230,0.7)';
+    ctx.font = '12px system-ui, sans-serif';
+    ctx.fillText('neuroevolution', x, 50);
+
+    const last = this.history[this.history.length - 1];
+    const current = this.activeBirds[0]?.score ?? 0;
+    const rows = [
+      ['GENERATION', String(this.generation), true],
+      ['SCORE (this run)', String(current), false],
+      ['ALIVE', `${this.activeBirds.length} / ${this.allBirds.length}`, false],
+      ['BEST EVER', String(this.bestScore), false],
+      ['CHAMPION', String(this.champion?.score ?? 0), false],
+      ['LAST GEN', last ? `best ${last.best} · avg ${Math.round(last.avg)}` : '—', false],
+    ];
+
+    let y = 84;
+    for (const [label, value, big] of rows) {
+      ctx.fillStyle = 'rgba(180,200,230,0.7)';
+      ctx.font = '12px system-ui, sans-serif';
+      ctx.fillText(label, x, y);
+      ctx.fillStyle = big ? '#ffd84d' : '#eef2f8';
+      ctx.font = big ? 'bold 34px system-ui, sans-serif' : 'bold 22px system-ui, sans-serif';
+      ctx.fillText(value, x, y + (big ? 34 : 26));
+      y += big ? 62 : 50;
+    }
+
+    // config footer
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.beginPath();
+    ctx.moveTo(x, y - 6);
+    ctx.lineTo(W - x, y - 6);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(180,200,230,0.7)';
+    ctx.font = '12px system-ui, sans-serif';
+    y += 14;
+    const cfg = [
+      ['population', String(CONFIG.POPULATION)],
+      ['elite carried', String(CONFIG.ELITE_COUNT)],
+      ['mutation', `${Math.round(CONFIG.MUTATION_RATE * 100)}% · ±${CONFIG.MUTATION_STRENGTH}`],
+      ['fitness', `score^${CONFIG.FITNESS_POWER}`],
+    ];
+    for (const [k, v] of cfg) {
+      ctx.fillStyle = 'rgba(180,200,230,0.7)';
+      ctx.textAlign = 'left';
+      ctx.fillText(k, x, y);
+      ctx.fillStyle = 'rgba(232,237,245,0.9)';
+      ctx.textAlign = 'right';
+      ctx.fillText(v, W - x, y);
+      y += 20;
+    }
+    ctx.textAlign = 'left';
   }
 
   // Render the brain diagram and fitness charts onto their dedicated canvases.

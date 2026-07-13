@@ -6,10 +6,11 @@ import { NeuralNetwork } from '../nn/network.js';
 const ANIMATION_TIME = 5;
 
 export class Bird {
-  constructor(brain) {
+  // mutate=false clones the brain unchanged (used for elite carry-over).
+  constructor(brain, mutate = true) {
     if (brain instanceof NeuralNetwork) {
       this.brain = brain.copy();
-      this.brain.mutate(CONFIG.MUTATION_RATE);
+      if (mutate) this.brain.mutate(CONFIG.MUTATION_RATE, CONFIG.MUTATION_STRENGTH);
     } else {
       this.brain = new NeuralNetwork(CONFIG.NN_INPUTS, CONFIG.NN_HIDDEN, CONFIG.NN_OUTPUTS);
     }
