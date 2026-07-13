@@ -34,4 +34,17 @@ describe('NeuralNetwork', () => {
     nn.mutate(0);
     expect(Array.from(nn.weightsIH)).toEqual(before);
   });
+
+  it('activations exposes hidden + output layers, and predict returns the output', () => {
+    const nn = new NeuralNetwork(5, 8, 2);
+    const input = [0.1, 0.2, 0.3, 0.4, 0.5];
+    const { hidden, output } = nn.activations(input);
+    expect(hidden).toHaveLength(8);
+    expect(output).toHaveLength(2);
+    for (const v of [...hidden, ...output]) {
+      expect(v).toBeGreaterThan(0);
+      expect(v).toBeLessThan(1);
+    }
+    expect(nn.predict(input)).toEqual(output);
+  });
 });

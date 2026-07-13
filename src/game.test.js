@@ -32,3 +32,20 @@ describe('Game - activeBirds/allBirds decoupling (regression)', () => {
     expect(game.activeBirds.length).toBe(CONFIG.POPULATION);
   });
 });
+
+describe('Game - visualisation stats tracking', () => {
+  it('evolve() records generation history, distribution, and a champion', () => {
+    const game = new Game({});
+    // Give birds distinct scores so best/avg/champion are non-trivial.
+    game.allBirds.forEach((b, i) => (b.score = i));
+    const expectedBest = CONFIG.POPULATION - 1;
+
+    game.evolve();
+
+    expect(game.history).toHaveLength(1);
+    expect(game.history[0]).toMatchObject({ gen: 1, best: expectedBest });
+    expect(game.history[0].avg).toBeCloseTo((CONFIG.POPULATION - 1) / 2);
+    expect(game.distribution).toHaveLength(CONFIG.POPULATION);
+    expect(game.champion.score).toBe(expectedBest);
+  });
+});

@@ -27,3 +27,24 @@ pipe, gap top, gap bottom, bird height, bird velocity. When output[1] > output[0
 the bird jumps. When every bird has died, the next generation is bred by
 fitness-weighted (score) roulette selection plus mutation. Tunables live in
 `src/config.js`.
+
+## Visualisations
+
+On-canvas overlays show the evolution live:
+
+- **Brain (top-right):** the current network as a node/edge graph — inputs →
+  hidden → outputs, edges tinted by weight sign (green +, red −), neurons lit by
+  their activation, and the winning output (NO / FLAP) highlighted.
+- **Dashboard (bottom-left):** best & average score per generation, the live
+  alive-count bar, and a histogram of the previous generation's scores.
+
+Keyboard:
+
+- `n` — toggle the brain view between the leading live bird and the all-time
+  champion (fed live inputs).
+- `v` — show / hide the overlays.
+
+## Deploy
+
+Pushing to `main` builds the app and publishes `dist/` to GitHub Pages via the
+`.github/workflows/deploy.yml` workflow.

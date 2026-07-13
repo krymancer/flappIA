@@ -67,8 +67,14 @@ export class Bird {
       this.y / H, // bird height
       this.vel / CONFIG.MAX_VEL, // bird velocity
     ];
-    const out = this.brain.predict(inputs);
-    if (out[1] > out[0]) this.jump();
+    const { hidden, output } = this.brain.activations(inputs);
+    // Remember the last decision so the network visualiser can render this
+    // bird's live inputs / neuron activations / jump choice.
+    this.lastInputs = inputs;
+    this.lastHidden = hidden;
+    this.lastOutput = output;
+    this.lastJump = output[1] > output[0];
+    if (this.lastJump) this.jump();
   }
 
   collides(pipe) {

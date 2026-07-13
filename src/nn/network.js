@@ -26,10 +26,12 @@ export class NeuralNetwork {
     this.biasO = randArray(outputs);
   }
 
-  predict(inputArray) {
+  // Full forward pass exposing the hidden-layer activations as well as the
+  // outputs — used by the network visualiser to light up firing neurons.
+  activations(inputArray) {
     const { inputs, hidden, outputs, weightsIH, weightsHO, biasH, biasO } = this;
 
-    const h = new Float32Array(hidden);
+    const h = new Array(hidden);
     for (let i = 0; i < hidden; i++) {
       let sum = biasH[i];
       for (let j = 0; j < inputs; j++) sum += weightsIH[i * inputs + j] * inputArray[j];
@@ -42,7 +44,11 @@ export class NeuralNetwork {
       for (let j = 0; j < hidden; j++) sum += weightsHO[i * hidden + j] * h[j];
       out[i] = sigmoid(sum);
     }
-    return out;
+    return { hidden: h, output: out };
+  }
+
+  predict(inputArray) {
+    return this.activations(inputArray).output;
   }
 
   copy() {

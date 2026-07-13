@@ -43,7 +43,7 @@ describe('Bird', () => {
 
   it('think jumps when the network favors output[1]', () => {
     const b = new Bird();
-    b.brain = { predict: () => [0.1, 0.9] };
+    b.brain = { activations: () => ({ hidden: [], output: [0.1, 0.9] }) };
     b.vel = 5;
     b.think([fakePipe(b.x + 50, 300)]);
     expect(b.vel).toBe(CONFIG.LIFT);
@@ -51,7 +51,7 @@ describe('Bird', () => {
 
   it('think does not jump when the network favors output[0]', () => {
     const b = new Bird();
-    b.brain = { predict: () => [0.9, 0.1] };
+    b.brain = { activations: () => ({ hidden: [], output: [0.9, 0.1] }) };
     b.vel = 5;
     b.think([fakePipe(b.x + 50, 300)]);
     expect(b.vel).toBe(5);
