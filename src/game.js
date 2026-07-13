@@ -14,8 +14,8 @@ export class Game {
   }
 
   reset(birds) {
-    this.activeBirds = birds;
     this.allBirds = birds;
+    this.activeBirds = [...birds];
     this.pipes = [
       new Pipe(CONFIG.CANVAS_WIDTH),
       new Pipe(CONFIG.CANVAS_WIDTH + CONFIG.PIPE_SPACING),
