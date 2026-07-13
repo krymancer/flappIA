@@ -5,3 +5,6 @@ dist
 .playwright-mcp/
 viz-*.png
 game-verify.png
+
+# SDD scratch
+.superpowers/
