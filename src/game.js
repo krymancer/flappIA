@@ -7,8 +7,10 @@ import { drawNetwork } from './viz/nn-view.js';
 import { drawDashboard } from './viz/charts.js';
 
 export class Game {
-  constructor(context) {
+  constructor(context, nnCtx, chartCtx) {
     this.ctx = context;
+    this.nnCtx = nnCtx ?? null; // dedicated canvas for the brain diagram
+    this.chartCtx = chartCtx ?? null; // dedicated canvas for the fitness charts
     this.base = new Base();
     this.generation = 1;
     this.bestScore = 0;
@@ -24,10 +26,8 @@ export class Game {
   reset(birds) {
     this.allBirds = birds;
     this.activeBirds = [...birds];
-    this.pipes = [
-      new Pipe(CONFIG.CANVAS_WIDTH),
-      new Pipe(CONFIG.CANVAS_WIDTH + CONFIG.PIPE_SPACING),
-    ];
+    const first = new Pipe(CONFIG.CANVAS_WIDTH);
+    this.pipes = [first, new Pipe(CONFIG.CANVAS_WIDTH + CONFIG.PIPE_SPACING, first.topHeight)];
   }
 
   // Record the finished generation's stats, then breed the next one.
@@ -52,7 +52,7 @@ export class Game {
     if (this.pipes[0].offscreen()) {
       this.pipes.shift();
       const last = this.pipes[this.pipes.length - 1];
-      this.pipes.push(new Pipe(last.x + CONFIG.PIPE_SPACING));
+      this.pipes.push(new Pipe(last.x + CONFIG.PIPE_SPACING, last.topHeight));
     }
   }
 
@@ -105,56 +105,57 @@ export class Game {
 
   drawHud() {
     const ctx = this.ctx;
-    ctx.fillStyle = '#fff';
-    ctx.font = '28px sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(`Generation: ${this.generation}`, 20, 40);
-    ctx.fillText(`Alive: ${this.activeBirds.length}`, 20, 76);
-    ctx.fillText(`Best: ${this.bestScore}`, 20, 112);
-    ctx.fillStyle = 'rgba(255,255,255,0.6)';
-    ctx.font = '13px sans-serif';
-    ctx.fillText('[n] brain: leading/champion   [v] hide graphs', 20, 140);
+    // subtle shadow panel behind the text for legibility over the sky
+    ctx.fillStyle = 'rgba(0,0,0,0.28)';
+    ctx.fillRect(16, 18, 300, 118);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 30px system-ui, sans-serif';
+    ctx.fillText(`Generation ${this.generation}`, 30, 56);
+    ctx.font = '24px system-ui, sans-serif';
+    ctx.fillText(`Alive: ${this.activeBirds.length} / ${this.allBirds.length}`, 30, 92);
+    ctx.fillText(`Best: ${this.bestScore}`, 30, 124);
   }
 
+  // Render the brain diagram and fitness charts onto their dedicated canvases.
   drawViz() {
-    const ctx = this.ctx;
-    const W = CONFIG.CANVAS_WIDTH;
-    const H = CONFIG.CANVAS_HEIGHT;
-
-    // Network diagram (top-right).
     const lead = this.leadingBird();
     const inputs = lead?.lastInputs;
-    if (inputs) {
-      const nnPanel = { x: W - 262, y: 12, w: 250, h: 214 };
-      if (this.nnTarget === 'champion' && this.champion) {
-        const acts = this.champion.brain.activations(inputs);
-        const jump = acts.output[1] > acts.output[0];
-        drawNetwork(
-          ctx,
-          this.champion.brain,
-          acts,
-          inputs,
-          jump,
-          nnPanel,
-          `(champion · ${this.champion.score})`
-        );
-      } else {
-        const acts = { hidden: lead.lastHidden, output: lead.lastOutput };
-        drawNetwork(ctx, lead.brain, acts, inputs, lead.lastJump, nnPanel, '(leading)');
+
+    if (this.nnCtx) {
+      clearCanvas(this.nnCtx);
+      if (inputs) {
+        if (this.nnTarget === 'champion' && this.champion) {
+          const acts = this.champion.brain.activations(inputs);
+          const jump = acts.output[1] > acts.output[0];
+          drawNetwork(
+            this.nnCtx,
+            this.champion.brain,
+            acts,
+            inputs,
+            jump,
+            `champion · ${this.champion.score}`
+          );
+        } else {
+          const acts = { hidden: lead.lastHidden, output: lead.lastOutput };
+          drawNetwork(this.nnCtx, lead.brain, acts, inputs, lead.lastJump, 'leading bird');
+        }
       }
     }
 
-    // Fitness dashboard (bottom-left).
-    const dashPanel = { x: 12, y: H - 262, w: 258, h: 250 };
-    drawDashboard(
-      ctx,
-      {
+    if (this.chartCtx) {
+      clearCanvas(this.chartCtx);
+      drawDashboard(this.chartCtx, {
         history: this.history,
         distribution: this.distribution,
         alive: this.activeBirds.length,
         population: this.allBirds.length,
-      },
-      dashPanel
-    );
+        generation: this.generation,
+      });
+    }
   }
+}
+
+function clearCanvas(ctx) {
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 }

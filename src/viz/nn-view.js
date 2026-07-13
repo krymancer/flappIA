@@ -1,80 +1,76 @@
-// Renders a neural network as a node/edge diagram overlaid on the game canvas:
-// input → hidden → output columns, edges tinted by weight sign/magnitude, nodes
-// lit by their activation, and the winning output ("FLAP") highlighted.
+// Renders a neural network onto its own canvas: input → hidden → output
+// columns, edges tinted by weight sign/magnitude, nodes lit by activation, and
+// the winning output ("FLAP") highlighted. Sized to fill ctx.canvas.
 
-const INPUT_LABELS = ['dist', 'gapT', 'gapB', 'y', 'vel'];
-const OUTPUT_LABELS = ['NO', 'FLAP'];
+const INPUT_LABELS = ['pipe dist', 'gap top', 'gap bottom', 'bird y', 'velocity'];
+const OUTPUT_LABELS = ['DON’T', 'FLAP'];
 
-// Map a signed value to a fill: cool (blue) for low activation, warm (yellow)
-// for high. Activations are 0..1 (sigmoid); inputs are clamped for display.
+// Activation (0..1) → cool-to-warm fill.
 function activationFill(v) {
   const t = Math.max(0, Math.min(1, v));
-  const r = Math.round(40 + t * 215);
-  const g = Math.round(60 + t * 180);
-  const b = Math.round(120 - t * 80);
+  const r = Math.round(35 + t * 220);
+  const g = Math.round(55 + t * 175);
+  const b = Math.round(130 - t * 95);
   return `rgb(${r},${g},${b})`;
 }
 
-function columnPositions(count, x, top, bottom, radius) {
-  const positions = [];
-  const usable = bottom - top;
-  const step = count > 1 ? usable / (count - 1) : 0;
+function column(count, x, top, bottom) {
+  const pts = [];
+  const step = count > 1 ? (bottom - top) / (count - 1) : 0;
   for (let i = 0; i < count; i++) {
-    positions.push({ x, y: count > 1 ? top + step * i : (top + bottom) / 2, r: radius });
+    pts.push({ x, y: count > 1 ? top + step * i : (top + bottom) / 2 });
   }
-  return positions;
+  return pts;
 }
 
-// network: NeuralNetwork; acts: {hidden:number[], output:number[]}; inputs:number[]
-export function drawNetwork(ctx, network, acts, inputs, jump, panel, subtitle) {
-  const { x, y, w, h } = panel;
+export function drawNetwork(ctx, network, acts, inputs, jump, subtitle) {
+  const W = ctx.canvas.width;
+  const H = ctx.canvas.height;
+  const R = 13;
 
   ctx.save();
-
-  // panel background
-  ctx.fillStyle = 'rgba(15, 20, 30, 0.72)';
-  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-  ctx.lineWidth = 1;
-  roundRect(ctx, x, y, w, h, 8);
-  ctx.fill();
-  ctx.stroke();
-
-  // title
-  ctx.fillStyle = 'rgba(255,255,255,0.9)';
-  ctx.font = 'bold 13px sans-serif';
   ctx.textBaseline = 'alphabetic';
-  ctx.fillText('BRAIN', x + 12, y + 20);
-  ctx.fillStyle = 'rgba(180,200,230,0.8)';
-  ctx.font = '11px sans-serif';
-  ctx.fillText(subtitle, x + 58, y + 20);
 
-  const top = y + 40;
-  const bottom = y + h - 16;
-  const colX = [x + 34, x + w / 2, x + w - 40];
-  const radius = 7;
+  // header
+  ctx.fillStyle = '#eef2f8';
+  ctx.font = 'bold 18px system-ui, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('NEURAL NET', 16, 26);
+  ctx.fillStyle = 'rgba(180,200,230,0.75)';
+  ctx.font = '13px system-ui, sans-serif';
+  ctx.fillText(subtitle, 140, 26);
 
-  const inPos = columnPositions(network.inputs, colX[0], top, bottom, radius);
-  const hidPos = columnPositions(network.hidden, colX[1], top, bottom, radius);
-  const outPos = columnPositions(network.outputs, colX[2], top, bottom, radius);
+  const top = 62;
+  const bottom = H - 30;
+  const colX = [96, W / 2, W - 96];
 
-  // edges input→hidden
+  const inPos = column(network.inputs, colX[0], top, bottom);
+  const hidPos = column(network.hidden, colX[1], top, bottom);
+  const outPos = column(network.outputs, colX[2], top, bottom);
+
   drawEdges(ctx, inPos, hidPos, network.weightsIH, network.inputs);
-  // edges hidden→output
   drawEdges(ctx, hidPos, outPos, network.weightsHO, network.hidden);
 
-  // nodes
-  drawNodes(ctx, inPos, inputs, INPUT_LABELS, 'left');
-  drawNodes(ctx, hidPos, acts.hidden, null, null);
-  drawNodes(ctx, outPos, acts.output, OUTPUT_LABELS, 'right');
+  drawNodes(ctx, inPos, inputs, R, INPUT_LABELS, 'left');
+  drawNodes(ctx, hidPos, acts.hidden, R, null, null);
+  drawNodes(ctx, outPos, acts.output, R, OUTPUT_LABELS, 'right');
 
-  // highlight the firing output
-  const fireIdx = jump ? 1 : 0;
-  const fp = outPos[fireIdx];
-  ctx.strokeStyle = jump ? '#ffe14d' : 'rgba(255,255,255,0.55)';
-  ctx.lineWidth = 2.5;
+  // highlight the firing output with a glow ring
+  const fp = outPos[jump ? 1 : 0];
+  ctx.strokeStyle = jump ? '#ffd84d' : 'rgba(255,255,255,0.6)';
+  ctx.shadowColor = jump ? '#ffd84d' : 'transparent';
+  ctx.shadowBlur = jump ? 14 : 0;
+  ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.arc(fp.x, fp.y, radius + 4, 0, Math.PI * 2);
+  ctx.arc(fp.x, fp.y, R + 6, 0, Math.PI * 2);
   ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // decision caption
+  ctx.fillStyle = jump ? '#ffd84d' : 'rgba(230,235,245,0.8)';
+  ctx.font = 'bold 14px system-ui, sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText(jump ? 'decision: FLAP' : 'decision: glide', W - 14, H - 8);
 
   ctx.restore();
 }
@@ -84,9 +80,8 @@ function drawEdges(ctx, from, to, weights, stride) {
     for (let j = 0; j < from.length; j++) {
       const w = weights[i * stride + j];
       const mag = Math.min(1, Math.abs(w));
-      ctx.strokeStyle =
-        w >= 0 ? `rgba(90,220,160,${mag * 0.55})` : `rgba(240,110,90,${mag * 0.55})`;
-      ctx.lineWidth = 0.5 + mag * 1.5;
+      ctx.strokeStyle = w >= 0 ? `rgba(90,220,160,${mag * 0.6})` : `rgba(245,110,95,${mag * 0.6})`;
+      ctx.lineWidth = 0.5 + mag * 2.2;
       ctx.beginPath();
       ctx.moveTo(from[j].x, from[j].y);
       ctx.lineTo(to[i].x, to[i].y);
@@ -95,36 +90,35 @@ function drawEdges(ctx, from, to, weights, stride) {
   }
 }
 
-function drawNodes(ctx, pos, values, labels, labelSide) {
-  ctx.font = '9px sans-serif';
+function drawNodes(ctx, pos, values, r, labels, side) {
+  ctx.font = '12px system-ui, sans-serif';
   for (let i = 0; i < pos.length; i++) {
     const p = pos[i];
     const v = values ? values[i] : 0;
     ctx.fillStyle = activationFill(v);
-    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 
     if (labels) {
-      ctx.fillStyle = 'rgba(230,235,245,0.85)';
+      ctx.fillStyle = 'rgba(232,237,245,0.9)';
       ctx.textBaseline = 'middle';
-      if (labelSide === 'left') {
+      if (side === 'left') {
         ctx.textAlign = 'right';
-        ctx.fillText(labels[i], p.x - p.r - 4, p.y);
+        ctx.fillText(labels[i], p.x - r - 8, p.y);
       } else {
         ctx.textAlign = 'left';
-        ctx.fillText(labels[i], p.x + p.r + 4, p.y);
+        ctx.fillText(labels[i], p.x + r + 8, p.y);
       }
-      ctx.textAlign = 'left';
       ctx.textBaseline = 'alphabetic';
     }
   }
 }
 
-function roundRect(ctx, x, y, w, h, r) {
+export function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
   ctx.arcTo(x + w, y, x + w, y + h, r);
@@ -133,5 +127,3 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.arcTo(x, y, x + w, y, r);
   ctx.closePath();
 }
-
-export { roundRect };

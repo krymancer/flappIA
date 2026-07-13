@@ -2,25 +2,92 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>flappIA — Neuroevolution Flappy Bird</title>
     <link rel="shortcut icon" href="favicon.ico" />
     <style>
+      :root {
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
       body {
         margin: 0;
-        background: #181717;
-        width: 100%;
-        height: 100vh;
-        position: relative;
+        min-height: 100vh;
+        background: radial-gradient(circle at 50% 0%, #1d2733, #0e1116 70%);
+        color: #e8edf5;
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+      }
+      #stage {
+        display: flex;
+        gap: 18px;
+        align-items: stretch;
+        max-width: 100%;
       }
       #game {
-        position: absolute;
-        inset: 0;
-        margin: auto;
+        height: min(94vh, 1024px);
+        width: auto;
+        border-radius: 10px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        image-rendering: pixelated;
+      }
+      #panels {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        justify-content: center;
+      }
+      .card {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 10px;
+      }
+      canvas.viz {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .hint {
+        font-size: 12px;
+        color: rgba(232, 237, 245, 0.55);
+        text-align: center;
+        margin-top: 2px;
+      }
+      /* Stack the panel under the game on narrow / short screens. */
+      @media (max-width: 900px) {
+        #stage {
+          flex-direction: column;
+          align-items: center;
+        }
+        #game {
+          height: auto;
+          width: min(94vw, 576px);
+        }
       }
     </style>
     <script type="module" src="/src/main.js"></script>
   </head>
   <body>
-    <canvas id="game" width="576" height="1024"></canvas>
+    <div id="stage">
+      <canvas id="game" width="576" height="1024"></canvas>
+      <aside id="panels">
+        <div class="card">
+          <canvas id="nn" class="viz" width="460" height="380"></canvas>
+        </div>
+        <div class="card">
+          <canvas id="charts" class="viz" width="460" height="480"></canvas>
+        </div>
+        <div class="hint">[n] leading / champion brain &nbsp;·&nbsp; [v] pause graphs</div>
+      </aside>
+    </div>
   </body>
 </html>

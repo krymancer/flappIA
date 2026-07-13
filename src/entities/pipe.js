@@ -4,9 +4,18 @@ import { SPRITES } from '../assets.js';
 const rand = (min, max) => Math.floor(Math.random() * (max - min)) + min;
 
 export class Pipe {
-  constructor(x) {
+  // prevTopHeight (optional): the previous pipe's opening, so this one's gap
+  // stays within PIPE_MAX_DELTA of it and remains reachable.
+  constructor(x, prevTopHeight) {
     this.x = x;
-    this.topHeight = rand(CONFIG.PIPE_MIN_TOP, CONFIG.PIPE_MAX_TOP);
+    const { PIPE_MIN_TOP, PIPE_MAX_TOP, PIPE_MAX_DELTA } = CONFIG;
+    let lo = PIPE_MIN_TOP;
+    let hi = PIPE_MAX_TOP;
+    if (prevTopHeight != null) {
+      lo = Math.max(PIPE_MIN_TOP, prevTopHeight - PIPE_MAX_DELTA);
+      hi = Math.min(PIPE_MAX_TOP, prevTopHeight + PIPE_MAX_DELTA);
+    }
+    this.topHeight = rand(lo, hi + 1);
     this.gapBottom = this.topHeight + CONFIG.PIPE_GAP;
   }
 

@@ -23,4 +23,14 @@ describe('Pipe', () => {
     const p = new Pipe(-(52 * CONFIG.SCALE) - 1);
     expect(p.offscreen()).toBe(true);
   });
+
+  it('keeps its opening within PIPE_MAX_DELTA of the previous pipe', () => {
+    const prev = 300;
+    for (let i = 0; i < 200; i++) {
+      const p = new Pipe(500, prev);
+      expect(Math.abs(p.topHeight - prev)).toBeLessThanOrEqual(CONFIG.PIPE_MAX_DELTA);
+      expect(p.topHeight).toBeGreaterThanOrEqual(CONFIG.PIPE_MIN_TOP);
+      expect(p.topHeight).toBeLessThanOrEqual(CONFIG.PIPE_MAX_TOP);
+    }
+  });
 });
