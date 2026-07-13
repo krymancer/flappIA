@@ -1,2 +1,7 @@
 node_modules
 dist
+
+# local verification artifacts
+.playwright-mcp/
+viz-*.png
+game-verify.png
