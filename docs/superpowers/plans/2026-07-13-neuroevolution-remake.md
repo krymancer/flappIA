@@ -32,11 +32,13 @@
 ### Task 1: Project tooling scaffold
 
 **Files:**
+
 - Create: `package.json`, `vite.config.js`, `eslint.config.js`, `.prettierrc.json`, `.gitignore`
 - Modify: `index.html` (point script at `/src/main.js`)
 - Create: `src/main.js` (temporary stub, replaced in Task 9)
 
 **Interfaces:**
+
 - Consumes: nothing.
 - Produces: working `npm run dev`, `npm run build`, `npm run lint`, `npm run format`, `npm test`; a `src/main.js` module loaded by `index.html`.
 
@@ -100,7 +102,12 @@ export default [
     languageOptions: {
       ecmaVersion: 2023,
       sourceType: 'module',
-      globals: { window: 'readonly', document: 'readonly', Image: 'readonly', requestAnimationFrame: 'readonly' },
+      globals: {
+        window: 'readonly',
+        document: 'readonly',
+        Image: 'readonly',
+        requestAnimationFrame: 'readonly',
+      },
     },
     rules: {
       'no-unused-vars': 'warn',
@@ -196,11 +203,13 @@ git commit -m "chore: scaffold vite + eslint + prettier + vitest tooling"
 ### Task 2: Config + asset preloader
 
 **Files:**
+
 - Create: `src/config.js`
 - Create: `src/assets.js`
 - Test: `src/assets.test.js`
 
 **Interfaces:**
+
 - Consumes: nothing.
 - Produces:
   - `config.js` exports `const CONFIG` with numeric fields: `CANVAS_WIDTH=576`, `CANVAS_HEIGHT=1024`, `SCALE=2`, `POPULATION=250`, `PIPE_GAP=200`, `PIPE_VEL=6`, `PIPE_SPACING=350`, `BASE_VEL=5`, `GRAVITY=0.4`, `LIFT=-9`, `MAX_VEL=14`, `MUTATION_RATE=0.1`, `NN_INPUTS=5`, `NN_HIDDEN=8`, `NN_OUTPUTS=2`, `PIPE_MIN_TOP=80`, `PIPE_MAX_TOP=650`.
@@ -289,16 +298,7 @@ export let SPRITES = null;
 
 export async function loadAssets() {
   const p = 'assets/sprites/';
-  const [
-    day,
-    night,
-    up,
-    mid,
-    down,
-    pipeDown,
-    pipeUp,
-    base,
-  ] = await Promise.all([
+  const [day, night, up, mid, down, pipeDown, pipeUp, base] = await Promise.all([
     load(`${p}background-day.png`),
     load(`${p}background-night.png`),
     load(`${p}yellowbird-upflap.png`),
@@ -339,10 +339,12 @@ git commit -m "feat: add config and async sprite preloader"
 ### Task 3: Neural network (Float32Array, forward-only)
 
 **Files:**
+
 - Create: `src/nn/network.js`
 - Test: `src/nn/network.test.js`
 
 **Interfaces:**
+
 - Consumes: nothing.
 - Produces `class NeuralNetwork`:
   - `new NeuralNetwork(inputs, hidden, outputs)` — random weights in `[-1, 1]`.
@@ -491,10 +493,12 @@ git commit -m "feat: add float32 neural network (predict/copy/mutate)"
 ### Task 4: Pipe entity
 
 **Files:**
+
 - Create: `src/entities/pipe.js`
 - Test: `src/entities/pipe.test.js`
 
 **Interfaces:**
+
 - Consumes: `CONFIG` from `src/config.js`; `SPRITES` from `src/assets.js` (only inside `draw`).
 - Produces `class Pipe`:
   - `new Pipe(x)` — sets `this.x = x`, random gap; `this.topHeight` (y where the top pipe's opening ends), `this.gapBottom = this.topHeight + CONFIG.PIPE_GAP`.
@@ -603,10 +607,12 @@ git commit -m "feat: add pipe entity with gap geometry"
 ### Task 5: Base (scrolling ground)
 
 **Files:**
+
 - Create: `src/entities/base.js`
 - Test: `src/entities/base.test.js`
 
 **Interfaces:**
+
 - Consumes: `CONFIG`; `SPRITES` (inside `draw`).
 - Produces `class Base`:
   - `new Base()` — `this.y = FLOOR` where `FLOOR = CONFIG.CANVAS_HEIGHT - 112 * CONFIG.SCALE`; `this.x1 = 0`, `this.x2 = width`.
@@ -698,10 +704,12 @@ git commit -m "feat: add scrolling base entity"
 ### Task 6: Bird entity (physics, AI, collision, render)
 
 **Files:**
+
 - Create: `src/entities/bird.js`
 - Test: `src/entities/bird.test.js`
 
 **Interfaces:**
+
 - Consumes: `CONFIG`; `SPRITES` (inside `draw`); `FLOOR` from `./base.js`; `NeuralNetwork` from `../nn/network.js`; `Pipe` shape (`x`, `width`, `topHeight`, `gapBottom`).
 - Produces `class Bird`:
   - `new Bird(brain?)` — if `brain` is a `NeuralNetwork`, `this.brain = brain.copy()` then `this.brain.mutate(CONFIG.MUTATION_RATE)`; else fresh `new NeuralNetwork(NN_INPUTS, NN_HIDDEN, NN_OUTPUTS)`. Start `x=115`, `y=350`, `vel=0`, `score=0`, `fitness=0`, `alive=true`.
@@ -912,10 +920,12 @@ git commit -m "feat: add bird entity with physics, AI, collision, rotation"
 ### Task 7: Genetic algorithm
 
 **Files:**
+
 - Create: `src/ga.js`
 - Test: `src/ga.test.js`
 
 **Interfaces:**
+
 - Consumes: `Bird` from `./entities/bird.js`; `CONFIG`.
 - Produces:
   - `createPopulation(n = CONFIG.POPULATION): Bird[]` — `n` fresh birds.
@@ -1031,9 +1041,11 @@ git commit -m "feat: add genetic algorithm (population, fitness, selection)"
 ### Task 8: Game loop
 
 **Files:**
+
 - Create: `src/game.js`
 
 **Interfaces:**
+
 - Consumes: `CONFIG`; `SPRITES`; `Base`, `Pipe`, `Bird`; `createPopulation`, `nextGeneration`.
 - Produces `class Game`:
   - `new Game(context)` — stores context, `createPopulation()`, initial pipes, `new Base()`, `generation=1`, `bestScore=0`.
@@ -1146,11 +1158,13 @@ git commit -m "feat: add game loop with pipe recycling, evolution, HUD"
 ### Task 9: Bootstrap, cleanup, behavioral verification, README
 
 **Files:**
+
 - Modify: `src/main.js` (replace stub)
 - Delete: `js/main.js` (and empty `js/` dir)
 - Modify: `README.md`
 
 **Interfaces:**
+
 - Consumes: `loadAssets` from `./assets.js`; `Game` from `./game.js`.
 - Produces: running application.
 
@@ -1186,7 +1200,7 @@ git rm js/main.js
 
 - [ ] **Step 3: Update `README.md`**
 
-```markdown
+````markdown
 # flappIA
 
 Neuroevolution Flappy Bird — a population of birds, each driven by a small
@@ -1199,6 +1213,7 @@ vanilla JS + Vite.
 npm install
 npm run dev      # http://localhost:5173
 ```
+````
 
 ## Scripts
 
@@ -1216,7 +1231,8 @@ pipe, gap top, gap bottom, bird height, bird velocity. When output[1] > output[0
 the bird jumps. When every bird has died, the next generation is bred by
 fitness-weighted (score) roulette selection plus mutation. Tunables live in
 `src/config.js`.
-```
+
+````
 
 - [ ] **Step 4: Full verification — tests, lint, build**
 
@@ -1245,7 +1261,7 @@ If any check fails, use superpowers:systematic-debugging before proceeding.
 ```bash
 git add src/main.js README.md
 git commit -m "feat: wire bootstrap, remove legacy main.js, update README"
-```
+````
 
 ---
 

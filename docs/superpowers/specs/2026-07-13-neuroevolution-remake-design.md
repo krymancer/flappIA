@@ -73,6 +73,7 @@ Vite serves them from the project root / `public` per its static-asset rules
 ## Components
 
 ### assets.js
+
 - `loadAssets(): Promise<void>` — creates every `Image`, resolves via
   `Promise.all` on each `onload`. Exports loaded sprite handles (backgrounds,
   bird frames, pipes, base).
@@ -81,11 +82,13 @@ Vite serves them from the project root / `public` per its static-asset rules
   the race — the game starts only after assets exist.
 
 ### config.js
+
 Single source of tunables: `POPULATION`, `PIPE_GAP`, `PIPE_VEL`, `BASE_VEL`,
 gravity/lift constants, `MUTATION_RATE`, sprite scale, NN shape
 (`INPUTS=5, HIDDEN=8, OUTPUTS=2`), spawn spacing.
 
 ### nn/network.js
+
 - Single hidden layer. Weights/biases as `Float32Array`, randomized in
   `[-1, 1]`.
 - `predict(inputs: number[]): number[]` — forward pass, sigmoid activation.
@@ -94,6 +97,7 @@ gravity/lift constants, `MUTATION_RATE`, sprite scale, NN shape
 - No training/backprop — evolution only.
 
 ### entities/bird.js
+
 - Physics ported from the working pre-Remake `Bird` (gravity/lift/velocity),
   adapted to the new sprite scale.
 - Rendering from the current Remake bird: 3-frame flap animation + tilt, drawn
@@ -107,20 +111,24 @@ gravity/lift constants, `MUTATION_RATE`, sprite scale, NN shape
 - Tracks `score` (frames survived) and `fitness`.
 
 ### entities/pipe.js
+
 Ported/kept from current `Pipe`: moves left, draws top/bottom green pipes with a
 gap; exposes geometry for collision. Continuous spawn/despawn handled by `Game`
 (the current code never recycles pipes — this design does).
 
 ### entities/base.js
+
 Scrolling ground — ported from the current `Base` class largely as-is.
 
 ### ga.js
+
 - `createPopulation(n)` → array of `Bird` with fresh random brains.
 - `normalizeFitness(birds)` — fitness = score / total score.
 - `poolSelection(birds)` — roulette-wheel pick weighted by fitness.
 - `nextGeneration(birds)` — build new population from selected+mutated brains.
 
 ### game.js
+
 Owns state: `activeBirds`, `allBirds`, `pipes`, `base`, `generation`,
 `bestScore`. Per frame: move pipes/base, spawn/recycle pipes, each active bird
 `think()` + update + collision check (dead → removed), draw everything, draw HUD
@@ -148,7 +156,7 @@ Game.loop()
 2. **Collision** — real AABB replaces `Pipe.collide()` `return false`.
 3. **`blitRotateCenter`** — currently ignores `angle` and swaps width/height
    (`image.height`/`image.width` transposed). Rewrite to `save →
-   translate(center) → rotate(angle) → drawImage → restore`.
+translate(center) → rotate(angle) → drawImage → restore`.
 4. **Pipe recycling** — current loop never respawns pipes; `Game` recycles them
    off the left edge with a fresh gap height.
 5. **Physics re-enabled** — `bird.update()` runs every frame (was commented out
