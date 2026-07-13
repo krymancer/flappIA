@@ -3,7 +3,8 @@ dist
 
 # local verification artifacts
 .playwright-mcp/
-viz-*.png
+*.png
+!public/**/*.png
 game-verify.png
 
 # SDD scratch
