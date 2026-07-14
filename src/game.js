@@ -7,11 +7,12 @@ import { drawNetwork } from './viz/nn-view.js';
 import { drawDashboard } from './viz/charts.js';
 
 export class Game {
-  constructor(context, nnCtx, chartCtx, statsCtx) {
+  constructor(context, nnCtx, chartCtx, statsCtx, genTableCtx) {
     this.ctx = context;
     this.nnCtx = nnCtx ?? null; // dedicated canvas for the brain diagram
     this.chartCtx = chartCtx ?? null; // dedicated canvas for the fitness charts
     this.statsCtx = statsCtx ?? null; // dedicated canvas for the left stats column
+    this.genTableCtx = genTableCtx ?? null; // dedicated canvas for the generations table
     this.base = new Base();
     this.generation = 1;
     this.bestScore = 0;
@@ -99,6 +100,7 @@ export class Game {
     this.activeBirds.forEach((b) => b.draw(ctx));
     this.base.draw(ctx);
     if (this.statsCtx) this.drawStats();
+    if (this.genTableCtx) this.drawGenTable();
     if (this.showViz) this.drawViz();
 
     if (this.activeBirds.length === 0) this.evolve();
@@ -164,6 +166,55 @@ export class Game {
       ctx.textAlign = 'right';
       ctx.fillText(v, W - x, y);
       y += 20;
+    }
+    ctx.textAlign = 'left';
+  }
+
+  // Left column, bottom: a table of recent generations (newest first).
+  drawGenTable() {
+    const ctx = this.genTableCtx;
+    clearCanvas(ctx);
+    const W = ctx.canvas.width;
+    const H = ctx.canvas.height;
+    const x = 18;
+    const colBest = W - 105;
+    const colAvg = W - 18;
+    ctx.textBaseline = 'alphabetic';
+
+    ctx.fillStyle = '#eef2f8';
+    ctx.font = 'bold 15px system-ui, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('GENERATIONS', x, 26);
+
+    // column headers
+    ctx.fillStyle = 'rgba(180,200,230,0.7)';
+    ctx.font = '11px system-ui, sans-serif';
+    ctx.fillText('GEN', x, 48);
+    ctx.textAlign = 'right';
+    ctx.fillText('BEST', colBest, 48);
+    ctx.fillText('AVG', colAvg, 48);
+
+    const rowH = 21;
+    const maxRows = Math.floor((H - 60) / rowH);
+    const rows = this.history.slice(-maxRows).reverse(); // newest first
+    let y = 68;
+    ctx.font = '13px system-ui, sans-serif';
+    for (const r of rows) {
+      const isBest = r.best === this.bestScore;
+      ctx.fillStyle = isBest ? '#ffd84d' : 'rgba(232,237,245,0.9)';
+      ctx.textAlign = 'left';
+      ctx.fillText(String(r.gen), x, y);
+      ctx.textAlign = 'right';
+      ctx.fillText(String(r.best), colBest, y);
+      ctx.fillStyle = 'rgba(180,200,230,0.8)';
+      ctx.fillText(String(Math.round(r.avg)), colAvg, y);
+      y += rowH;
+    }
+    if (rows.length === 0) {
+      ctx.fillStyle = 'rgba(200,210,230,0.5)';
+      ctx.textAlign = 'left';
+      ctx.font = '12px system-ui, sans-serif';
+      ctx.fillText('waiting for generation 1…', x, y);
     }
     ctx.textAlign = 'left';
   }

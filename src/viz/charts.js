@@ -88,7 +88,10 @@ function drawLineChart(ctx, history, x, y, w, h) {
   const maxBest = Math.max(1, ...history.map((d) => d.best));
   const n = history.length;
   const xAt = (i) => (n > 1 ? x + (w * i) / (n - 1) : x + w / 2);
-  const yAt = (v) => y + h - (h * v) / maxBest;
+  // Log scale: best (thousands) and avg (tens–hundreds) differ by ~100x, so a
+  // linear axis flattens avg to the baseline. log keeps both readable.
+  const logMax = Math.log1p(maxBest);
+  const yAt = (v) => y + h - (h * Math.log1p(Math.max(0, v))) / logMax;
 
   const line = (key, color, width) => {
     ctx.strokeStyle = color;
@@ -109,6 +112,11 @@ function drawLineChart(ctx, history, x, y, w, h) {
   ctx.font = '12px system-ui, sans-serif';
   ctx.fillText(String(maxBest), x + 4, y + 12);
   ctx.fillText('0', x + 4, y + h - 4);
+  ctx.fillStyle = 'rgba(180,200,230,0.45)';
+  ctx.font = '10px system-ui, sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText('log scale', x + w - 4, y + 11);
+  ctx.textAlign = 'left';
 }
 
 function drawHistogram(ctx, distribution, x, y, w, h) {

@@ -19,7 +19,8 @@ async function boot() {
   const nnCtx = document.getElementById('nn').getContext('2d');
   const chartCtx = document.getElementById('charts').getContext('2d');
   const statsCtx = document.getElementById('stats').getContext('2d');
-  new Game(context, nnCtx, chartCtx, statsCtx).start();
+  const genTableCtx = document.getElementById('gentable').getContext('2d');
+  new Game(context, nnCtx, chartCtx, statsCtx, genTableCtx).start();
 }
 
 boot();
