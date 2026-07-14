@@ -2,7 +2,7 @@ export const CONFIG = {
   CANVAS_WIDTH: 576,
   CANVAS_HEIGHT: 1024,
   SCALE: 2,
-  POPULATION: 500,
+  POPULATION: 1000,
   PIPE_GAP: 220,
   PIPE_VEL: 6,
   PIPE_SPACING: 380,
@@ -26,6 +26,11 @@ export const CONFIG = {
   NN_INPUTS: 5,
   NN_HIDDEN: 8,
   NN_OUTPUTS: 2,
-  PIPE_MIN_TOP: 80,
-  PIPE_MAX_TOP: 620,
+  // Gap-opening bounds. The ground (base) top sits at CANVAS_HEIGHT - 112*SCALE
+  // = 800. Keep the top pipe's lip below the ceiling (MIN_TOP) and the bottom
+  // pipe's lip (topHeight + PIPE_GAP) above the ground with margin, so both
+  // pipe borders and some body are always visible — never an all-in-ground pipe.
+  // MAX_TOP + PIPE_GAP = 720, leaving ~80px of bottom pipe above the ground.
+  PIPE_MIN_TOP: 120,
+  PIPE_MAX_TOP: 500,
 };

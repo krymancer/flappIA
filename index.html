@@ -39,12 +39,17 @@
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
         image-rendering: pixelated;
       }
-      #panels,
-      #stats-col {
+      #panels {
         display: flex;
         flex-direction: column;
         gap: 14px;
         justify-content: center;
+      }
+      #stats-col {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        justify-content: flex-start; /* keep stats pinned to the top */
       }
       .card {
         background: rgba(255, 255, 255, 0.04);
@@ -81,7 +86,7 @@
     <div id="stage">
       <aside id="stats-col">
         <div class="card">
-          <canvas id="stats" class="viz" width="300" height="510"></canvas>
+          <canvas id="stats" class="viz" width="300" height="430"></canvas>
         </div>
       </aside>
       <canvas id="game" width="576" height="1024"></canvas>

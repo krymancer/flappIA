@@ -127,7 +127,6 @@ export class Game {
       ['SCORE (this run)', String(current), false],
       ['ALIVE', `${this.activeBirds.length} / ${this.allBirds.length}`, false],
       ['BEST EVER', String(this.bestScore), false],
-      ['CHAMPION', String(this.champion?.score ?? 0), false],
       ['LAST GEN', last ? `best ${last.best} · avg ${Math.round(last.avg)}` : '—', false],
     ];
 
